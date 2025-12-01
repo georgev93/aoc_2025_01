@@ -9,8 +9,7 @@ use crate::file_parser::parse_file;
 
 pub fn solve(input_file: &str) -> i32 {
     let mut dial = Dial::new();
-    let input_commands = parse_file(input_file);
-    let rotations = Rotations::new("data/example.txt".to_string());
+    let rotations_iter = Rotations::new(parse_file(input_file)).get_iter();
 
     0
 }

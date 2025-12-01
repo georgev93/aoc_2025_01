@@ -1,4 +1,3 @@
-
 #[derive(Debug, PartialEq)]
 pub enum Command {
     Left(u16),
@@ -9,9 +8,10 @@ impl Command {
     fn from_str(s: &str) -> Self {
         let (prefix, number_str) = s.trim_ascii().split_at(1);
 
-        let num = number_str.trim_ascii().parse::<u16>().unwrap_or_else(|_| {
-            panic!("Failed to parse {number_str}")
-        });
+        let num = number_str
+            .trim_ascii()
+            .parse::<u16>()
+            .unwrap_or_else(|_| panic!("Failed to parse {number_str}"));
         match prefix {
             "L" => Command::Left(num),
             "R" => Command::Right(num),
@@ -19,14 +19,40 @@ impl Command {
         }
     }
 
-    pub fn modify(&self, target: &mut u8) {
-        let orignal = *target as i16;
+    pub fn modify(&self, target: &mut u8, zero_clicks: &mut u32) {
+        let original = *target as i16;
         let modifer = match self {
-            Command::Left(n) =>  -(*n as i16),
+            Command::Left(n) => -(*n as i16),
             Command::Right(n) => *n as i16,
         };
 
-        *target = ((((orignal + modifer) % 100) + 100) % 100) as u8;
+        let mut sum = original + modifer;
+        let mut zero_click_modification: i16 = 0;
+
+        if original == 0 && sum < 0 {
+            zero_click_modification = -1;
+        }
+
+        while sum < 0 {
+            sum += 100;
+            println!("Click! Was negative");
+            zero_click_modification += 1;
+        }
+
+        if sum == 0 {
+            println!("Click! Landed on 0");
+            zero_click_modification += 1;
+        }
+
+        while sum > 99 {
+            println!("Click! Was over 100");
+            sum -= 100;
+            zero_click_modification += 1;
+        }
+
+        *target = sum as u8;
+        *zero_clicks += zero_click_modification as u32;
+
     }
 }
 
@@ -65,23 +91,69 @@ mod tests {
     #[test]
     fn check_modify() {
         let mut input_val: u8 = 10;
-        Command::Left(5).modify(&mut input_val);
+        let mut zero_clicks = 0;
+        Command::Left(5).modify(&mut input_val, &mut zero_clicks);
         assert_eq!(input_val, 5);
+        assert_eq!(zero_clicks, 0);
 
         input_val = 10;
-        Command::Left(15).modify(&mut input_val);
+        zero_clicks = 0;
+        Command::Left(15).modify(&mut input_val, &mut zero_clicks);
         assert_eq!(input_val, 95);
+        assert_eq!(zero_clicks, 1);
 
         input_val = 10;
-        Command::Right(5).modify(&mut input_val);
-        assert_eq!(input_val, 15);
-
-        input_val = 90;
-        Command::Right(15).modify(&mut input_val);
-        assert_eq!(input_val, 5);
-
-        input_val = 90;
-        Command::Right(10).modify(&mut input_val);
+        zero_clicks = 0;
+        Command::Left(10).modify(&mut input_val, &mut zero_clicks);
         assert_eq!(input_val, 0);
+        assert_eq!(zero_clicks, 1);
+
+        input_val = 10;
+        zero_clicks = 0;
+        Command::Right(5).modify(&mut input_val, &mut zero_clicks);
+        assert_eq!(input_val, 15);
+        assert_eq!(zero_clicks, 0);
+
+        input_val = 90;
+        zero_clicks = 0;
+        Command::Right(15).modify(&mut input_val, &mut zero_clicks);
+        assert_eq!(input_val, 5);
+        assert_eq!(zero_clicks, 1);
+
+        input_val = 90;
+        zero_clicks = 0;
+        Command::Right(10).modify(&mut input_val, &mut zero_clicks);
+        assert_eq!(input_val, 0);
+        assert_eq!(zero_clicks, 1);
+
+        input_val = 0;
+        zero_clicks = 0;
+        Command::Left(5).modify(&mut input_val, &mut zero_clicks);
+        assert_eq!(input_val, 95);
+        assert_eq!(zero_clicks, 0);
+
+        input_val = 0;
+        zero_clicks = 0;
+        Command::Left(100).modify(&mut input_val, &mut zero_clicks);
+        assert_eq!(input_val, 0);
+        assert_eq!(zero_clicks, 1);
+
+        input_val = 0;
+        zero_clicks = 0;
+        Command::Left(200).modify(&mut input_val, &mut zero_clicks);
+        assert_eq!(input_val, 0);
+        assert_eq!(zero_clicks, 2);
+
+        input_val = 0;
+        zero_clicks = 0;
+        Command::Right(100).modify(&mut input_val, &mut zero_clicks);
+        assert_eq!(input_val, 0);
+        assert_eq!(zero_clicks, 1);
+
+        input_val = 0;
+        zero_clicks = 0;
+        Command::Right(200).modify(&mut input_val, &mut zero_clicks);
+        assert_eq!(input_val, 0);
+        assert_eq!(zero_clicks, 2);
     }
 }

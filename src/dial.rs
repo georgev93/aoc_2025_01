@@ -20,17 +20,17 @@ impl<'a> Dial<'a> {
 
     pub fn roll_through(&mut self) {
         for command in &mut self.command_iter {
-            let old_position = self.current_position;
-            println!("Applying command {:?} on {old_position}", command);
+            // let old_position = self.current_position;
+            // println!("Applying command {:?} on {old_position}", command);
 
             command.modify(&mut self.current_position, &mut self.zero_clicks);
 
             if self.current_position == 0 {
                 self.zero_instances += 1;
             }
-            let new_position = self.current_position;
-            println!("Changed from {old_position} to {new_position}");
-            println!();
+            // let new_position = self.current_position;
+            // println!("Changed from {old_position} to {new_position}");
+            // println!();
         }
     }
 

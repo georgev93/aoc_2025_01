@@ -35,17 +35,17 @@ impl Command {
 
         while sum < 0 {
             sum += 100;
-            println!("Click! Was negative");
+            // println!("Click! Was negative");
             zero_click_modification += 1;
         }
 
         if sum == 0 {
-            println!("Click! Landed on 0");
+            // println!("Click! Landed on 0");
             zero_click_modification += 1;
         }
 
         while sum > 99 {
-            println!("Click! Was over 100");
+            // println!("Click! Was over 100");
             sum -= 100;
             zero_click_modification += 1;
         }
